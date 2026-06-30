@@ -54,7 +54,7 @@ function createArchiveQuery(options: { date?: string; lang: "pt" | "es"; page?: 
 export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   const lang = searchParams?.lang === "es" ? "es" : "pt";
   const pageNumber = Math.max(1, Number.parseInt(searchParams?.page ?? "1", 10) || 1);
-  const limit = 15;
+  const limit = 5;
   const offset = (pageNumber - 1) * limit;
   const requestedDate =
     searchParams?.date ?? (searchParams?.dateIso ? toApiDate(searchParams.dateIso) : null);
@@ -123,7 +123,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           </section>
 
           <section className="rounded-2xl border border-stone-300 bg-white p-4 shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Datas nesta página</p>
+            <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Meditações nesta página</p>
             <ul className="space-y-2">
               {sortedItems.map((item) => (
                 <li key={item.id}>

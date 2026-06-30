@@ -143,6 +143,7 @@ Base URL: `http://localhost:8000`
 | `GET` | `/meditacoes/por-data?data=DD/MM/AAAA` | — | Meditação por data específica |
 | `GET` | `/meditacoes/?limit=20&offset=0` | — | Lista paginada de meditações |
 | `POST` | `/meditacoes/raspar` | `X-API-Key` | Raspa e salva uma meditação (parâmetros abaixo) |
+| `POST` | `/contato/` | — | Envia mensagem de contato por e-mail |
 
 Documentação interativa disponível em `http://localhost:8000/docs`.
 
@@ -187,6 +188,13 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2
 | `SCRAPE_SCHEDULE_MINUTE` | não | `0` | Minuto do job automático |
 | `TIMEZONE` | não | `America/Sao_Paulo` | Fuso horário do scheduler |
 | `CORS_ORIGINS` | não | `["http://localhost:3000"]` | Origens permitidas pelo CORS |
+| `SMTP_HOST` | não | `smtp.gmail.com` | Servidor SMTP para envio de e-mail |
+| `SMTP_PORT` | não | `587` | Porta SMTP (TLS) |
+| `SMTP_USER` | sim | — | E-mail remetente (conta SMTP) |
+| `SMTP_PASSWORD` | sim | — | Senha de app do e-mail remetente |
+| `CONTACT_EMAIL` | sim | — | E-mail destinatário das mensagens de contato |
+
+> Para Gmail, gere uma **senha de app** em: Conta Google → Segurança → Verificação em duas etapas → Senhas de app.
 
 ### Frontend (`frontend/.env.local`)
 
@@ -309,6 +317,7 @@ Abre um editor interativo com todos os campos da meditação para correção man
 | Meditação do dia | `/` | Exibe a meditação atual com índice de seções navegável |
 | Arquivo | `/arquivo` | Navegação por data com lista lateral paginada |
 | Sobre | `/sobre` | Apresentação do projeto e atribuição de direitos |
+| Contato | `/contato` | Formulário de contato com envio de e-mail |
 
 **Recursos da interface:**
 - Modo claro / escuro com persistência em `localStorage` e respeito a `prefers-color-scheme`
@@ -317,3 +326,4 @@ Abre um editor interativo com todos os campos da meditação para correção man
 - Texto em itálico preservado da obra original
 - Suporte a português e espanhol (toggle por idioma)
 - Tipografia serifada com texto justificado
+- Formulário de contato com feedback de sucesso/erro e proxy via Next.js API route

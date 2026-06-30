@@ -23,6 +23,11 @@ class Settings(BaseSettings):
         default=["http://localhost:3000", "https://localhost:3000"],
         alias="CORS_ORIGINS",
     )
+    smtp_host: str = Field(default="smtp.gmail.com", alias="SMTP_HOST")
+    smtp_port: int = Field(default=587, alias="SMTP_PORT")
+    smtp_user: str = Field(alias="SMTP_USER")
+    smtp_password: str = Field(alias="SMTP_PASSWORD")
+    contact_email: str = Field(alias="CONTACT_EMAIL")
 
 
 @lru_cache

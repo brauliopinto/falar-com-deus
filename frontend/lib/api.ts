@@ -52,3 +52,23 @@ export async function listMeditacoes(limit = 30, offset = 0): Promise<MeditacaoL
 
   return (await response.json()) as MeditacaoListResponse;
 }
+
+export type ContatoPayload = {
+  nome: string;
+  email: string;
+  assunto: string;
+  mensagem: string;
+};
+
+export async function enviarContato(payload: ContatoPayload): Promise<void> {
+  const response = await fetch(`/api/contato`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error((data as { detail?: string }).detail ?? "Erro ao enviar mensagem.");
+  }
+}

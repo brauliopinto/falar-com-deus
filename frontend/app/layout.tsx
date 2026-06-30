@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <div className="border-b border-stone-300 bg-[#fbf8f2] dark:border-stone-700 dark:bg-stone-950">
+        <div className="sticky top-0 z-50 border-b border-stone-300 bg-[#fbf8f2]/95 backdrop-blur-sm dark:border-stone-700 dark:bg-stone-950/95">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
             <Link className="text-xl font-semibold text-stone-900 dark:text-stone-100" href="/">
               Falar com Deus
@@ -47,6 +47,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 href="/sobre"
               >
                 Sobre
+              </Link>
+              <Link
+                className="rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800"
+                href="/contato"
+              >
+                Contato
               </Link>
               <ThemeToggle />
             </nav>

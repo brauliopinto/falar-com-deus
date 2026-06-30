@@ -15,6 +15,7 @@ dependencies = [
     "deepl",
     "python-dotenv",
     "pydantic-settings",
+    "email-validator",
 ]
 
 [build-system]
