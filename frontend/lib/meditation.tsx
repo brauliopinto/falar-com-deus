@@ -135,6 +135,7 @@ export type NumberedCitation = {
 
 export type ReferenceListItem = {
   id: string;
+  number: string;
   label: string;
 };
 
@@ -210,6 +211,7 @@ function parseCitationMarkersFromText(text: string, citationNumbers: Set<string>
     nodes.push(
       <a
         key={`citation-${citationNumber}-${index}`}
+        id={`cite-back-${citationNumber}`}
         href={`#cit-${citationNumber}`}
         className="font-semibold text-primary underline decoration-blue-300 underline-offset-2"
       >
@@ -420,6 +422,7 @@ export function buildReferenceList(citations: NumberedCitation[]): ReferenceList
     seenLabels.add(label);
     items.push({
       id: `cit-${citation.number}`,
+      number: citation.number,
       label
     });
   }

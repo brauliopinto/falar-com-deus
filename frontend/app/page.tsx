@@ -54,7 +54,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6 rounded-2xl border border-stone-300 bg-white p-8 shadow-sm dark:border-stone-700 dark:bg-stone-800">
         <p className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400">Meditação Diária</p>
-        <p className="mt-2 text-base text-stone-600 dark:text-stone-400">Leitura diária em português e espanhol.</p>
+        <p className="mt-2 text-base text-stone-600 dark:text-stone-400">Disponível em português e espanhol.</p>
       </header>
 
       <article className="space-y-6 rounded-2xl border border-stone-300 bg-white p-8 shadow-sm dark:border-stone-700 dark:bg-stone-800">
@@ -135,7 +135,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               <ul className="mt-2 space-y-1">
                 {references.map((reference) => (
                   <li className="text-justify" id={reference.id} key={reference.id}>
-                    <span className="text-slate-700 dark:text-slate-300">{renderTextWithReferences(reference.label)}</span>
+                    <span className="text-slate-700 dark:text-slate-300">
+                      <a href={`#cite-back-${reference.number}`} className="font-semibold text-primary hover:underline dark:text-[#c49a5a]" title="Voltar ao trecho">{reference.number}.</a>
+                      {" "}{renderTextWithReferences(reference.label.slice(reference.number.length + 2))}
+                    </span>
                   </li>
                 ))}
               </ul>

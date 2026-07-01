@@ -20,6 +20,11 @@ h3 {
   letter-spacing: -0.01em;
 }
 
+/* Compensates for the sticky navbar when navigating anchor links */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 p {
   line-height: 1.8;
 }

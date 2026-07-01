@@ -234,7 +234,10 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
                 <ul className="mt-2 space-y-1">
                   {references.map((reference) => (
                     <li className="text-justify" id={reference.id} key={reference.id}>
-                      <span className="text-slate-700 dark:text-slate-300">{renderTextWithReferences(reference.label)}</span>
+                      <span className="text-slate-700 dark:text-slate-300">
+                        <a href={`#cite-back-${reference.number}`} className="font-semibold text-primary hover:underline dark:text-[#c49a5a]" title="Voltar ao trecho">{reference.number}.</a>
+                        {" "}{renderTextWithReferences(reference.label.slice(reference.number.length + 2))}
+                      </span>
                     </li>
                   ))}
                 </ul>

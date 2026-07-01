@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { Dancing_Script } from "next/font/google";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
+
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Meditação Diária",
@@ -29,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <div className="sticky top-0 z-50 border-b border-stone-300 bg-[#fbf8f2]/95 backdrop-blur-sm dark:border-stone-700 dark:bg-stone-950/95">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link className="text-xl font-semibold text-stone-900 dark:text-stone-100" href="/">
+            <Link className={`${dancingScript.className} text-3xl text-stone-900 dark:text-stone-100`} href="/">
               Falar com Deus
             </Link>
             <nav className="flex items-center gap-2">
