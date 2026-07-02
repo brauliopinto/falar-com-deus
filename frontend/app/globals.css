@@ -5,12 +5,20 @@
 body {
   @apply text-slate-900 antialiased;
   background-color: #f6f2e8;
+  background-image: url("/falar_com_deus.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   min-height: 100vh;
   font-family: "Georgia", "Times New Roman", serif;
 }
 
 .dark body {
   background-color: #1c1917;
+  background-image: url("/falar_com_deus.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: #f5f5f4;
 }
 
@@ -18,6 +26,25 @@ h1,
 h2,
 h3 {
   letter-spacing: -0.01em;
+}
+
+/* Translucent cards over the background image */
+article,
+header {
+  background-color: rgba(251, 248, 242, 0.95) !important;
+}
+
+.dark article,
+.dark header {
+  background-color: rgba(28, 25, 23, 0.95) !important;
+}
+
+aside > section {
+  background-color: rgba(251, 248, 242, 0.95) !important;
+}
+
+.dark aside > section {
+  background-color: rgba(28, 25, 23, 0.95) !important;
 }
 
 /* Compensates for the sticky navbar when navigating anchor links */
