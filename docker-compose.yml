@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: meditacao-db
+    environment:
+      POSTGRES_DB: meditacoes
+      POSTGRES_USER: meditacao_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-suasenha123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meditacao_user -d meditacoes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meditacao-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://meditacao_user:${POSTGRES_PASSWORD:-suasenha123}@db:5432/meditacoes
+      CORS_ORIGINS: '["http://localhost:3000"]'
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meditacao-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
