@@ -26,6 +26,10 @@ export function getSelectedText(meditacao: Meditacao, lang: "pt" | "es") {
 
 type SelectedText = ReturnType<typeof getSelectedText>;
 
+export function stripItalicMarkers(text: string): string {
+  return text.replace(/\*([^*\n]+)\*/g, "$1");
+}
+
 export function shouldShowSubtitle(subtitle: string): boolean {
   const normalized = subtitle
     .normalize("NFD")

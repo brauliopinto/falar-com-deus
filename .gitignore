@@ -31,3 +31,4 @@ htmlcov/
 # OS / editor
 .DS_Store
 .vscode/
+policy.yml
