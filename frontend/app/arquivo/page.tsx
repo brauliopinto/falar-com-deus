@@ -8,7 +8,8 @@ import {
   renderTextWithReferences,
   splitSectionSubtitle,
   splitReflectionAndCitations,
-  shouldShowSubtitle
+  shouldShowSubtitle,
+  stripItalicMarkers
 } from "@/lib/meditation";
 
 type ArchivePageProps = {
@@ -99,7 +100,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <header className="mb-6 rounded-2xl border border-stone-300 bg-white p-8 shadow-sm dark:border-stone-700 dark:bg-stone-800">
+      <header className="mb-6 rounded-2xl border border-stone-300 bg-white p-4 shadow-sm sm:p-8 dark:border-stone-700 dark:bg-stone-800">
         <p className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400">Meditações por dia</p>
         <p className="mt-2 text-base text-stone-600 dark:text-stone-400">Navegue no histórico e abra uma data específica.</p>
       </header>
@@ -143,16 +144,16 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           </section>
         </aside>
 
-        <article className="space-y-6 rounded-2xl border border-stone-300 bg-white p-8 shadow-sm dark:border-stone-700 dark:bg-stone-800">
+        <article className="space-y-6 rounded-2xl border border-stone-300 bg-white p-4 shadow-sm sm:p-8 dark:border-stone-700 dark:bg-stone-800">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm text-slate-500 dark:text-slate-400">{current.data}</p>
-              <h2 className="mt-1 text-3xl font-bold text-primary dark:text-[#c49a5a]">{text.titulo}</h2>
+              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl dark:text-[#c49a5a]">{text.titulo}</h2>
               {shouldShowSubtitle(text.subtitulo) ? (
-                <p className="mt-2 text-lg italic text-stone-700 dark:text-stone-300">{text.subtitulo}</p>
+                <p className="mt-2 text-lg italic text-stone-700 dark:text-stone-300">{stripItalicMarkers(text.subtitulo)}</p>
               ) : null}
               <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                {renderTextWithReferences(text.leituraRef, citations)}
+                {renderTextWithReferences(text.leituraRef)}
               </p>
             </div>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import "./globals.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import MobileNav from "@/components/MobileNav";
 
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
@@ -39,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Link className={`${dancingScript.className} text-3xl text-stone-900 dark:text-stone-100`} href="/">
               Falar com Deus
             </Link>
-            <nav className="flex items-center gap-2">
+            <nav className="hidden items-center gap-2 md:flex">
               <Link className="rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800" href="/">
                 Meditação do dia
               </Link>
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </Link>
               <ThemeToggle />
             </nav>
+            <MobileNav />
           </div>
         </div>
         {children}
