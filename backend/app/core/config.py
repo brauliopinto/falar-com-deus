@@ -16,8 +16,8 @@ class Settings(BaseSettings):
         default="https://hablarcondios.org/meditacion-diaria/",
         alias="SCRAPE_SOURCE_URL",
     )
-    scrape_schedule_hour: int = Field(default=6, alias="SCRAPE_SCHEDULE_HOUR")
-    scrape_schedule_minute: int = Field(default=0, alias="SCRAPE_SCHEDULE_MINUTE")
+    scrape_schedule_hour: int = Field(default=0, alias="SCRAPE_SCHEDULE_HOUR")
+    scrape_schedule_minute: int = Field(default=17, alias="SCRAPE_SCHEDULE_MINUTE")
     timezone: str = Field(default="America/Sao_Paulo", alias="TIMEZONE")
     cors_origins: list[str] = Field(
         default=["http://localhost:3000", "https://localhost:3000"],
