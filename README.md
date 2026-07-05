@@ -2,9 +2,9 @@
 
 Aplicação web para leitura diária das meditações de *Hablar con Dios*, de **Francisco Fernández-Carvajal** (Ediciones Palabra), traduzidas automaticamente para o português do Brasil.
 
-O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarcondios.org), traduzido via **DeepL** e servido em uma interface limpa com suporte a modo noturno.
+O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarcondios.org), traduzido via **DeepL** e servido em uma interface com imagem de fundo sacra, modo noturno e responsividade mobile.
 
-> **Aviso de direitos:** todo o conteúdo das meditações é propriedade intelectual de Francisco Fernández-Carvajal e Ediciones Palabra, S.A. Este projeto é pessoal, sem fins comerciais e sem vínculo oficial com os titulares dos direitos.
+> **Aviso de direitos:** todo o conteúdo das meditações é propriedade intelectual de Francisco Fernández-Carvajal e Ediciones Palavra, S.A. Este projeto é pessoal, sem fins comerciais e sem vínculo oficial com os titulares dos direitos.
 
 ---
 
@@ -26,7 +26,7 @@ O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarco
 ```
 hablarcondios.org
       │
-      ▼ HTTP scrape (diário, 06:00 BRT)
+      ▼ HTTP scrape (00:17 BRT — até 3 tentativas: 00:17, 03:17, 06:17)
 ┌─────────────┐     DeepL API      ┌──────────────┐
 │   Scraper   │ ─────────────────► │  Translator  │
 └─────────────┘                    └──────────────┘
@@ -38,12 +38,12 @@ hablarcondios.org
       │ REST API
       ▼
 ┌─────────────────┐
-│  FastAPI (8000) │  /meditacoes/hoje · /meditacoes/por-data · /meditacoes/
+│  FastAPI (8000) │  /meditacoes/hoje · /meditacoes/por-data · /meditacoes/ · /contato/
 └─────────────────┘
       │ fetch (SSR)
       ▼
 ┌─────────────────┐
-│  Next.js (3000) │  / · /arquivo · /sobre
+│  Next.js (3000) │  / · /arquivo · /sobre · /contato
 └─────────────────┘
 ```
 
@@ -54,6 +54,8 @@ hablarcondios.org
 ```
 falar-com-deus/
 ├── docker-compose.yml
+├── .vscode/
+│   └── settings.json             # desativa linter CSS nativo (compatibilidade Tailwind)
 ├── backend/
 │   ├── Dockerfile
 │   ├── pyproject.toml
@@ -78,27 +80,35 @@ falar-com-deus/
 │       ├── models/
 │       │   └── meditacao.py      # modelo ORM da tabela meditacoes
 │       ├── schemas/
-│       │   └── meditacao.py      # schemas Pydantic (request/response)
+│       │   ├── meditacao.py      # schemas Pydantic (request/response)
+│       │   └── contato.py        # schema do formulário de contato
 │       ├── api/routes/
-│       │   └── meditacoes.py     # endpoints REST
+│       │   ├── meditacoes.py     # endpoints REST de meditações
+│       │   └── contato.py        # endpoint POST /contato/
 │       └── services/
 │           ├── scraper.py        # raspagem HTML + parsing
 │           ├── text_normalizer.py # limpeza de mojibake, HTML entities, unicode
 │           ├── translator.py     # integração DeepL
 │           ├── meditation_service.py # orquestração (scrape → traduz → persiste)
-│           └── scheduler.py      # APScheduler — job diário automático
+│           ├── email_service.py  # envio de e-mail via SMTP
+│           └── scheduler.py      # APScheduler — 3 tentativas diárias (00:17, 03:17, 06:17)
 └── frontend/
     ├── Dockerfile
     ├── tailwind.config.ts
     ├── tsconfig.json
+    ├── public/
+    │   └── falar_com_deus.png    # imagem de fundo sacra
     ├── app/
-    │   ├── layout.tsx            # navbar + ThemeToggle + script anti-flash
-    │   ├── globals.css
+    │   ├── layout.tsx            # navbar + MobileNav + ThemeToggle + script anti-flash
+    │   ├── globals.css           # estilos globais, fundo, cards translúcidos
     │   ├── page.tsx              # meditação do dia
     │   ├── arquivo/page.tsx      # arquivo com navegação por data
-    │   └── sobre/page.tsx        # apresentação e direitos autorais
+    │   ├── sobre/page.tsx        # apresentação e direitos autorais
+    │   ├── contato/page.tsx      # formulário de contato
+    │   └── api/contato/route.ts  # proxy Next.js → backend (evita CORS no browser)
     ├── components/
-    │   └── ThemeToggle.tsx       # toggle claro/escuro (localStorage)
+    │   ├── ThemeToggle.tsx        # toggle claro/escuro (localStorage)
+    │   └── MobileNav.tsx         # menu hamburger responsivo (mobile)
     └── lib/
         ├── api.ts                # funções de fetch para o backend
         └── meditation.tsx        # parsing e renderização do texto
@@ -184,8 +194,8 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2
 | `SCRAPE_API_KEY` | sim | — | Chave secreta para o endpoint `/raspar` |
 | `AMBIENTE` | não | `development` | Ambiente da aplicação |
 | `SCRAPE_SOURCE_URL` | não | `https://hablarcondios.org/meditacion-diaria/` | URL de origem do conteúdo |
-| `SCRAPE_SCHEDULE_HOUR` | não | `6` | Hora do job automático (fuso configurado) |
-| `SCRAPE_SCHEDULE_MINUTE` | não | `0` | Minuto do job automático |
+| `SCRAPE_SCHEDULE_HOUR` | não | `0` | Hora da 1ª tentativa de raspagem (fuso configurado) |
+| `SCRAPE_SCHEDULE_MINUTE` | não | `17` | Minuto da raspagem (repetido nas 3 tentativas) |
 | `TIMEZONE` | não | `America/Sao_Paulo` | Fuso horário do scheduler |
 | `CORS_ORIGINS` | não | `["http://localhost:3000"]` | Origens permitidas pelo CORS |
 | `SMTP_HOST` | não | `smtp.gmail.com` | Servidor SMTP para envio de e-mail |
@@ -231,7 +241,9 @@ Serviços disponíveis:
 
 ### 3. Popular o banco
 
-A raspagem automática ocorre diariamente às 06:00 (America/Sao_Paulo). Para popular manualmente:
+A raspagem automática ocorre diariamente com até 3 tentativas: **00:17**, **03:17** e **06:17** (America/Sao_Paulo). Se a meditação já foi salva em uma tentativa anterior, as seguintes são ignoradas automaticamente.
+
+Para popular manualmente:
 
 ```bash
 curl -s -X POST "http://localhost:8000/meditacoes/raspar" \
@@ -261,7 +273,6 @@ Requer Node.js 18+.
 
 ```bash
 cd frontend
-cp .env.local.example .env.local   # se existir, ou crie manualmente
 npm install
 npm run dev
 ```
@@ -290,8 +301,9 @@ Tradução ES → PT-BR preservando marcadores *texto*
 Campos *_pt armazenam a versão em português
     │
     ▼ Frontend (Next.js SSR)
-parseItalicFromText() converte *texto* → <em>
-renderTextWithReferences() vincula [N] às referências como âncoras
+stripItalicMarkers()         remove asteriscos do subtítulo (já exibido em itálico via CSS)
+parseItalicFromText()        converte *texto* → <em> no corpo das seções
+renderTextWithReferences()   vincula [N] às referências como âncoras bidirecionais
 splitReflectionAndCitations() separa corpo da meditação, citações e apêndice
 ```
 
@@ -321,9 +333,14 @@ Abre um editor interativo com todos os campos da meditação para correção man
 
 **Recursos da interface:**
 - Modo claro / escuro com persistência em `localStorage` e respeito a `prefers-color-scheme`
+- Imagem de fundo sacra com cards translúcidos
+- Fonte manuscrita (Dancing Script) no logotipo
+- Menu hamburger responsivo para dispositivos móveis
 - Índice de seções (I, II, III) com hiperlinks âncora internos
-- Citações bibliográficas com links âncora para a seção de referências
+- Links bidirecionais entre citações no texto e referências no rodapé
+- `scroll-margin-top` em todas as âncoras para compensar o navbar fixo
 - Texto em itálico preservado da obra original
 - Suporte a português e espanhol (toggle por idioma)
 - Tipografia serifada com texto justificado
-- Formulário de contato com feedback de sucesso/erro e proxy via Next.js API route
+- Formulário de contato com feedback de sucesso/erro e aviso de uso de dados (LGPD)
+- Proxy via Next.js API route (`/api/contato`) para chamadas do browser ao backend
