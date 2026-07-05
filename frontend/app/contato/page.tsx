@@ -138,6 +138,10 @@ export default function ContatoPage() {
             >
               {state === "loading" ? "Enviando..." : "Enviar mensagem"}
             </button>
+
+            <p className="text-center text-xs text-slate-400 dark:text-stone-500">
+              Seus dados serão utilizados exclusivamente para responder à sua mensagem. As informações ficam armazenadas apenas na caixa de e-mail do responsável pelo site.
+            </p>
           </form>
         )}
       </div>
