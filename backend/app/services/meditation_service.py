@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from app.services.text_normalizer import normalize_text as _norm
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.meditacao import Meditacao
@@ -51,7 +51,7 @@ class MeditationService:
     def list_all(self, limit: int, offset: int) -> tuple[list[Meditacao], int]:
         items = list(
             self._db.scalars(
-                select(Meditacao).order_by(Meditacao.criado_em.desc()).offset(offset).limit(limit),
+                select(Meditacao).order_by(func.to_date(Meditacao.data, "DD/MM/YYYY").desc()).offset(offset).limit(limit),
             ),
         )
         total = self._db.query(Meditacao).count()
