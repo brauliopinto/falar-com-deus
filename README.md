@@ -2,7 +2,7 @@
 
 Aplicação web para leitura diária das meditações de *Hablar con Dios*, de **Francisco Fernández-Carvajal** (Ediciones Palabra), traduzidas automaticamente para o português do Brasil.
 
-O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarcondios.org), traduzido via **DeepL** e servido em uma interface com imagem de fundo sacra, modo noturno e responsividade mobile.
+O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarcondios.org), traduzido automaticamente para o português do Brasil por um modelo de linguagem especializado em linguagem sacra (via **OpenRouter**, com fallback para **DeepL**), e servido em uma interface com imagem de fundo sacra, modo noturno e responsividade mobile.
 
 > **Aviso de direitos:** todo o conteúdo das meditações é propriedade intelectual de Francisco Fernández-Carvajal e Ediciones Palavra, S.A. Este projeto é pessoal, sem fins comerciais e sem vínculo oficial com os titulares dos direitos.
 
@@ -14,7 +14,7 @@ O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarco
 |---|---|
 | Backend | Python 3.11 · FastAPI · SQLAlchemy · Alembic · APScheduler |
 | Scraping | BeautifulSoup4 · Requests |
-| Tradução | DeepL API |
+| Tradução | OpenRouter (LangChain) · DeepL (fallback) |
 | Banco de dados | PostgreSQL 16 |
 | Frontend | Next.js 14 (App Router) · TypeScript · Tailwind CSS |
 | Infraestrutura | Docker · Docker Compose |
@@ -27,9 +27,9 @@ O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarco
 hablarcondios.org
       │
       ▼ HTTP scrape (00:17 BRT — até 3 tentativas: 00:17, 03:17, 06:17)
-┌─────────────┐     DeepL API      ┌──────────────┐
+┌─────────────┐  OpenRouter (LLM)  ┌──────────────┐
 │   Scraper   │ ─────────────────► │  Translator  │
-└─────────────┘                    └──────────────┘
+└─────────────┘  DeepL (fallback)  └──────────────┘
       │ texto normalizado + traduzido
       ▼
 ┌─────────────────┐
@@ -88,7 +88,7 @@ falar-com-deus/
 │       └── services/
 │           ├── scraper.py        # raspagem HTML + parsing
 │           ├── text_normalizer.py # limpeza de mojibake, HTML entities, unicode
-│           ├── translator.py     # integração DeepL
+│           ├── translator.py     # tradução via OpenRouter (LangChain) com fallback DeepL
 │           ├── meditation_service.py # orquestração (scrape → traduz → persiste)
 │           ├── email_service.py  # envio de e-mail via SMTP
 │           └── scheduler.py      # APScheduler — 3 tentativas diárias (00:17, 03:17, 06:17)
@@ -136,7 +136,7 @@ Tabela `meditacoes`:
 | `conteudo_i_pt` | text | seção I traduzida |
 | `conteudo_ii_pt` | text | seção II traduzida |
 | `conteudo_iii_pt` | text | seção III traduzida |
-| `fonte_traducao` | varchar(50) | fonte da tradução (ex: `deepl`) |
+| `fonte_traducao` | varchar(50) | fonte da tradução (`openrouter` ou `deepl`) |
 | `criado_em` | timestamptz | data de inserção |
 
 > Os campos `*_raw` preservam o HTML original; os campos normalizados convertem `<em>`/`<i>` em marcadores `*texto*`, removem mojibake e limpam entidades HTML.
@@ -190,7 +190,9 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2
 | Variável | Obrigatória | Padrão | Descrição |
 |---|---|---|---|
 | `DATABASE_URL` | sim | — | URL de conexão PostgreSQL |
-| `DEEPL_API_KEY` | sim | — | Chave da API DeepL |
+| `OPENROUTER_API_KEY` | não | — | Chave da API OpenRouter (tradução principal via LLM) |
+| `LLM_MODEL` | não | `openai/gpt-5-mini` | Modelo usado pelo OpenRouter |
+| `DEEPL_API_KEY` | não | — | Chave da API DeepL (fallback quando OpenRouter falha) |
 | `SCRAPE_API_KEY` | sim | — | Chave secreta para o endpoint `/raspar` |
 | `AMBIENTE` | não | `development` | Ambiente da aplicação |
 | `SCRAPE_SOURCE_URL` | não | `https://hablarcondios.org/meditacion-diaria/` | URL de origem do conteúdo |
@@ -294,7 +296,7 @@ conversão <em>/<i> → *texto* (marcador de itálico portátil)
     ├─► Salvo como campo *_raw (HTML original)
     └─► Salvo como campo normalizado em espanhol
     │
-    ▼ DeepL API
+    ▼ OpenRouter (LLM especializado em linguagem sacra) / DeepL (fallback)
 Tradução ES → PT-BR preservando marcadores *texto*
     │
     ▼ PostgreSQL

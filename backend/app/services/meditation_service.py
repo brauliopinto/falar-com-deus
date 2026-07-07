@@ -82,7 +82,7 @@ class MeditationService:
         payload["conteudo_i_pt"] = _norm(_translate_or_empty(self._translator, scraped.conteudo_i))
         payload["conteudo_ii_pt"] = _norm(_translate_or_empty(self._translator, scraped.conteudo_ii))
         payload["conteudo_iii_pt"] = _norm(_translate_or_empty(self._translator, scraped.conteudo_iii))
-        payload["fonte_traducao"] = "deepl"
+        payload["fonte_traducao"] = self._translator.source
 
         meditacao_create = MeditacaoCreate(**payload)
         if existing is not None:

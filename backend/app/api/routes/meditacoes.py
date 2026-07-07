@@ -19,7 +19,11 @@ def _service(db: Session) -> MeditationService:
     return MeditationService(
         db=db,
         scraper=ScraperService(settings.scrape_source_url),
-        translator=TranslatorService(settings.deepl_api_key),
+        translator=TranslatorService(
+            openrouter_api_key=settings.openrouter_api_key,
+            llm_model=settings.llm_model,
+            deepl_api_key=settings.deepl_api_key,
+        ),
     )
 
 
