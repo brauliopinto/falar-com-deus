@@ -12,11 +12,15 @@ dependencies = [
     "beautifulsoup4",
     "requests",
     "apscheduler",
+    "langchain-openrouter",
     "deepl",
     "python-dotenv",
     "pydantic-settings",
     "email-validator",
 ]
+
+[dependency-groups]
+dev = ["pytest"]
 
 [build-system]
 requires = ["hatchling"]

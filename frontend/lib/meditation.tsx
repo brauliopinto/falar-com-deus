@@ -372,12 +372,34 @@ function extractBiblicalReference(value: string): string | null {
   return match ? match[0].replace(/\s+/g, " ").trim() : null;
 }
 
+// Duas fontes, dois formatos de rodapé de citações:
+// - pipeline antiga (raspagem ES + tradução via LLM): "1 texto — 2 texto — 3 texto"
+// - site oficial em português, raspado direto: "(1) texto; (2) texto; (3) texto"
+const DASH_CITATION_REGEX = /(\d+)\s+(.+?)(?=\s+[—-]\s+\d+\s+|$)/g;
+const PAREN_CITATION_REGEX = /\((\d+)\)\s*(.+?)(?=;\s*\(\d+\)|;?\s*$)/g;
+
+function parseCitationsFromBlock(block: string): NumberedCitation[] {
+  const usesParenFormat = /\(\d+\)/.test(block);
+  const citationRegex = usesParenFormat ? PAREN_CITATION_REGEX : DASH_CITATION_REGEX;
+  const parsed: NumberedCitation[] = [];
+  for (const match of block.matchAll(citationRegex)) {
+    const number = match[1];
+    const rawText = match[2].trim().replace(/\s+/g, " ").replace(/;$/, "").trim();
+    parsed.push({
+      number,
+      text: rawText,
+      biblicalReference: extractBiblicalReference(rawText)
+    });
+  }
+  return parsed;
+}
+
 export function splitReflectionAndCitations(reflection: string): {
   reflectionText: string;
   citations: NumberedCitation[];
   appendix: string;
 } {
-  const startIndex = reflection.search(/\n\s*1\s+/);
+  const startIndex = reflection.search(/\n\s*\(?1\)?\s+/);
   if (startIndex < 0) {
     return { reflectionText: reflection, citations: [], appendix: "" };
   }
@@ -387,21 +409,11 @@ export function splitReflectionAndCitations(reflection: string): {
   const citationSection = reflection.slice(startIndex).trim();
   const citationParagraphs = citationSection.split(/\n\n/);
   const possibleCitationBlock = citationParagraphs[0].replace(/\s*\n\s*/g, " ").trim();
-  if (!/\b2\s+/.test(possibleCitationBlock)) {
+  if (!/\(?2\)?\s+/.test(possibleCitationBlock)) {
     return { reflectionText: reflection, citations: [], appendix: "" };
   }
 
-  const citationRegex = /(\d+)\s+(.+?)(?=\s+[—-]\s+\d+\s+|$)/g;
-  const parsed: NumberedCitation[] = [];
-  for (const match of possibleCitationBlock.matchAll(citationRegex)) {
-    const number = match[1];
-    const rawText = match[2].trim().replace(/\s+/g, " ");
-    parsed.push({
-      number,
-      text: rawText,
-      biblicalReference: extractBiblicalReference(rawText)
-    });
-  }
+  const parsed = parseCitationsFromBlock(possibleCitationBlock);
 
   if (parsed.length === 0) {
     return { reflectionText: reflection, citations: [], appendix: "" };

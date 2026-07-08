@@ -56,7 +56,12 @@ class ScrapeScheduler:
             service = MeditationService(
                 db=db,
                 scraper=ScraperService(self._settings.scrape_source_url),
-                translator=TranslatorService(self._settings.deepl_api_key),
+                translator=TranslatorService(
+                    openrouter_api_key=self._settings.openrouter_api_key,
+                    llm_model=self._settings.llm_model,
+                    deepl_api_key=self._settings.deepl_api_key,
+                ),
+                pt_source_url=self._settings.scrape_source_url_pt,
             )
             _, created = service.scrape_and_store_today()
             if created:
