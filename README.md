@@ -2,7 +2,7 @@
 
 Aplicação web para leitura diária das meditações de *Hablar con Dios*, de **Francisco Fernández-Carvajal** (Ediciones Palabra), traduzidas automaticamente para o português do Brasil.
 
-O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarcondios.org), traduzido automaticamente para o português do Brasil por um modelo de linguagem especializado em linguagem sacra (via **OpenRouter**, com fallback para **DeepL**), e servido em uma interface com imagem de fundo sacra, modo noturno e responsividade mobile.
+O conteúdo é obtido diariamente da própria versão em português do portal [hablarcondios.org](https://hablarcondios.org/pt/meditacao-diaria/). Caso essa página falhe, o sistema recorre à versão em espanhol e traduz automaticamente para o português do Brasil por um modelo de linguagem especializado em linguagem sacra (via **OpenRouter**, com fallback para **DeepL**). O conteúdo é servido em uma interface com imagem de fundo sacra, modo noturno e responsividade mobile.
 
 > **Aviso de direitos:** todo o conteúdo das meditações é propriedade intelectual de Francisco Fernández-Carvajal e Ediciones Palavra, S.A. Este projeto é pessoal, sem fins comerciais e sem vínculo oficial com os titulares dos direitos.
 
@@ -14,7 +14,7 @@ O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarco
 |---|---|
 | Backend | Python 3.11 · FastAPI · SQLAlchemy · Alembic · APScheduler |
 | Scraping | BeautifulSoup4 · Requests |
-| Tradução | OpenRouter (LangChain) · DeepL (fallback) |
+| Tradução | OpenRouter (LangChain) · DeepL — usados apenas como fallback quando a página em português falha |
 | Banco de dados | PostgreSQL 16 |
 | Frontend | Next.js 14 (App Router) · TypeScript · Tailwind CSS |
 | Infraestrutura | Docker · Docker Compose |
@@ -24,13 +24,26 @@ O conteúdo é obtido diariamente do portal [hablarcondios.org](https://hablarco
 ## Arquitetura
 
 ```
-hablarcondios.org
+hablarcondios.org/pt/meditacao-diaria/  (fonte primária, já em português)
       │
       ▼ HTTP scrape (00:17 BRT — até 3 tentativas: 00:17, 03:17, 06:17)
-┌─────────────┐  OpenRouter (LLM)  ┌──────────────┐
-│   Scraper   │ ─────────────────► │  Translator  │
-└─────────────┘  DeepL (fallback)  └──────────────┘
-      │ texto normalizado + traduzido
+      │
+      ├─ sucesso ──► campos *_pt = texto PT direto (sem tradução)
+      │                │
+      │                └─► também raspa hablarcondios.org/meditacion-diaria/ (ES)
+      │                    só para preencher os campos originais (sem traduzir),
+      │                    mantendo o toggle PT/ES do frontend funcional
+      │                    (se essa raspagem ES falhar, os campos originais
+      │                    ficam como cópia do texto PT)
+      │
+      └─ falha ──► hablarcondios.org/meditacion-diaria/ (fallback, em espanhol)
+                          │
+                          ▼  OpenRouter (LLM) / DeepL (fallback)
+                    ┌──────────────┐
+                    │  Translator  │
+                    └──────────────┘
+                          │ campos *_pt = texto traduzido
+      │
       ▼
 ┌─────────────────┐
 │   PostgreSQL    │  tabela: meditacoes
@@ -124,22 +137,24 @@ Tabela `meditacoes`:
 |---|---|---|
 | `id` | integer PK | identificador |
 | `data` | varchar(10) UNIQUE | data no formato `DD/MM/AAAA` |
-| `titulo_raw` / `titulo` | text | título em espanhol (raw HTML / normalizado) |
+| `titulo_raw` / `titulo` | text | título em espanhol — usado pelo toggle ES do frontend (raw HTML / normalizado) |
 | `subtitulo_raw` / `subtitulo` | text | subtítulo em espanhol |
 | `leitura_ref_raw` / `leitura_ref` | text | referência litúrgica em espanhol |
 | `leitura_ref_pt` | text | referência litúrgica em português |
 | `conteudo_i_raw` / `conteudo_i` | text | seção I em espanhol |
 | `conteudo_ii_raw` / `conteudo_ii` | text | seção II em espanhol |
 | `conteudo_iii_raw` / `conteudo_iii` | text | seção III em espanhol |
-| `titulo_pt` | text | título traduzido |
-| `subtitulo_pt` | text | subtítulo traduzido |
-| `conteudo_i_pt` | text | seção I traduzida |
-| `conteudo_ii_pt` | text | seção II traduzida |
-| `conteudo_iii_pt` | text | seção III traduzida |
-| `fonte_traducao` | varchar(50) | fonte da tradução (`openrouter` ou `deepl`) |
+| `titulo_pt` | text | título em português |
+| `subtitulo_pt` | text | subtítulo em português |
+| `conteudo_i_pt` | text | seção I em português |
+| `conteudo_ii_pt` | text | seção II em português |
+| `conteudo_iii_pt` | text | seção III em português |
+| `fonte_traducao` | varchar(50) | origem do conteúdo em português: `site_pt` (raspado direto, sem tradução), `openrouter` ou `deepl` (fallback traduzido) |
 | `criado_em` | timestamptz | data de inserção |
 
 > Os campos `*_raw` preservam o HTML original; os campos normalizados convertem `<em>`/`<i>` em marcadores `*texto*`, removem mojibake e limpam entidades HTML.
+>
+> No raro caso em que a raspagem em português funciona mas a raspagem em espanhol falha no mesmo dia, os campos em espanhol ficam como cópia do texto em português (o toggle ES do frontend mostraria português nesse dia específico).
 
 ---
 
@@ -162,10 +177,13 @@ Documentação interativa disponível em `http://localhost:8000/docs`.
 | Parâmetro | Tipo | Padrão | Descrição |
 |---|---|---|---|
 | `force` | bool | `false` | Sobrescreve o registro se já existir |
-| `source_url` | string | URL padrão do site espanhol | URL de onde raspar o HTML |
+| `source_url` | string | — (usa PT com fallback ES automático) | Força a raspagem de uma URL específica |
+| `translate` | bool | `true` (só se `source_url` informado) | Válido apenas junto com `source_url`. Se `true`, o conteúdo raspado é traduzido via LLM/DeepL (assume-se fonte em espanhol). Se `false`, o conteúdo raspado é salvo direto como português, sem tradução — use para reraspar uma URL que já está em português |
 | `date` | string `DD/MM/AAAA` | hoje (America/Sao_Paulo) | Data a ser gravada no banco |
 
-Os três parâmetros são independentes e opcionais. Exemplos:
+Quando `source_url` não é informado, o serviço tenta primeiro `SCRAPE_SOURCE_URL_PT` (conteúdo já em português, sem tradução) e só recorre a `SCRAPE_SOURCE_URL` (espanhol) com tradução via LLM/DeepL se a raspagem em português falhar; nesse caso `translate` é ignorado.
+
+Os quatro parâmetros são independentes e opcionais. Exemplos:
 
 ```bash
 # Raspagem normal do dia atual
@@ -176,8 +194,12 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar" \
 curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true" \
   -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
 
-# Raspar de uma URL alternativa com data específica (ex: diferença de fuso)
+# Raspar de uma URL alternativa em espanhol com data específica (ex: diferença de fuso) — traduz por padrão
 curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2026&source_url=https://hablarcondios.org/meditacion-dia-anterior/" \
+  -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
+
+# Raspar de uma URL alternativa já em português, sem tradução
+curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2026&source_url=https://hablarcondios.org/pt/meditacao-dia-anterior/&translate=false" \
   -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
 ```
 
@@ -195,7 +217,8 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2
 | `DEEPL_API_KEY` | não | — | Chave da API DeepL (fallback quando OpenRouter falha) |
 | `SCRAPE_API_KEY` | sim | — | Chave secreta para o endpoint `/raspar` |
 | `AMBIENTE` | não | `development` | Ambiente da aplicação |
-| `SCRAPE_SOURCE_URL` | não | `https://hablarcondios.org/meditacion-diaria/` | URL de origem do conteúdo |
+| `SCRAPE_SOURCE_URL_PT` | não | `https://hablarcondios.org/pt/meditacao-diaria/` | URL primária, já em português (sem necessidade de tradução) |
+| `SCRAPE_SOURCE_URL` | não | `https://hablarcondios.org/meditacion-diaria/` | URL de fallback em espanhol, usada com tradução via LLM/DeepL quando a raspagem em português falha |
 | `SCRAPE_SCHEDULE_HOUR` | não | `0` | Hora da 1ª tentativa de raspagem (fuso configurado) |
 | `SCRAPE_SCHEDULE_MINUTE` | não | `17` | Minuto da raspagem (repetido nas 3 tentativas) |
 | `TIMEZONE` | não | `America/Sao_Paulo` | Fuso horário do scheduler |
@@ -284,29 +307,42 @@ npm run dev
 ## Pipeline de conteúdo
 
 ```
-hablarcondios.org (HTML)
+hablarcondios.org/pt/meditacao-diaria/ (HTML, fonte primária)
     │
-    ▼ BeautifulSoup
-Extração dos campos: título, subtítulo, referência litúrgica, seções I/II/III
+    ▼ BeautifulSoup + text_normalizer
+Extração e limpeza dos campos: título, subtítulo, referência litúrgica, seções I/II/III
+(a descrição de cada seção, marcada no site com um traço — "—", "–" ou "-" —, é detectada
+ e embutida como "— descrição\n\n corpo" no início de conteudo_i/ii/iii)
     │
-    ▼ text_normalizer
-Limpeza: remoção de mojibake, entidades HTML, normalização unicode,
-conversão <em>/<i> → *texto* (marcador de itálico portátil)
+    ├─► sucesso: campos *_pt = texto em português direto (fonte_traducao = "site_pt")
     │
-    ├─► Salvo como campo *_raw (HTML original)
-    └─► Salvo como campo normalizado em espanhol
+    └─► também raspa hablarcondios.org/meditacion-diaria/ (BeautifulSoup + text_normalizer)
+            só para preencher campos *_raw / normalizados em espanhol (sem tradução),
+            usados pelo toggle ES do frontend
+            (se essa raspagem falhar, os campos em espanhol viram cópia do texto em português)
+
+    ── se a raspagem em português falhar (rede, HTTP, estrutura inesperada) ──
+
+hablarcondios.org/meditacion-diaria/ (HTML, fallback em espanhol)
+    │
+    ▼ BeautifulSoup + text_normalizer (mesmo processo acima)
+    │
+    ├─► Salvo como campo *_raw / normalizado em espanhol
     │
     ▼ OpenRouter (LLM especializado em linguagem sacra) / DeepL (fallback)
 Tradução ES → PT-BR preservando marcadores *texto*
     │
     ▼ PostgreSQL
-Campos *_pt armazenam a versão em português
+Campos *_pt armazenam a versão em português (fonte_traducao = "openrouter" ou "deepl")
     │
     ▼ Frontend (Next.js SSR)
-stripItalicMarkers()         remove asteriscos do subtítulo (já exibido em itálico via CSS)
-parseItalicFromText()        converte *texto* → <em> no corpo das seções
-renderTextWithReferences()   vincula [N] às referências como âncoras bidirecionais
-splitReflectionAndCitations() separa corpo da meditação, citações e apêndice
+stripItalicMarkers()         remove asteriscos do subtítulo geral (já exibido em itálico via CSS)
+parseItalicFromText()        converte *texto* → <em> no título, nas descrições de seção e no corpo
+renderTextWithReferences()   aplica parseItalicFromText() e vincula [N] às referências como âncoras bidirecionais
+splitSectionSubtitle()       extrai a descrição embutida ("— texto") no início de cada seção I/II/III
+splitReflectionAndCitations() separa corpo da meditação, citações e apêndice — reconhece tanto o
+                              formato da pipeline ES+LLM ("1 texto — 2 texto") quanto o formato nativo
+                              do site em português ("(1) texto; (2) texto")
 ```
 
 ---

@@ -148,7 +148,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm text-slate-500 dark:text-slate-400">{current.data}</p>
-              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl dark:text-[#c49a5a]">{text.titulo}</h2>
+              <h2 className="mt-1 text-2xl font-bold text-primary sm:text-3xl dark:text-[#c49a5a]">{renderTextWithReferences(text.titulo)}</h2>
               {shouldShowSubtitle(text.subtitulo) ? (
                 <p className="mt-2 text-lg italic text-stone-700 dark:text-stone-300">{stripItalicMarkers(text.subtitulo)}</p>
               ) : null}
@@ -196,18 +196,18 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
           <section className="space-y-4 text-slate-800 dark:text-slate-200">
             <nav className="flex flex-col gap-1 border-b border-slate-100 pb-4 text-sm font-medium dark:border-stone-700">
               <a href="#section-i" className="text-justify text-primary hover:underline dark:text-[#c49a5a]">
-                I{secI.subtitle ? `. ${secI.subtitle}` : ""}
+                I{secI.subtitle ? <>. {renderTextWithReferences(secI.subtitle)}</> : null}
               </a>
               <a href="#section-ii" className="text-justify text-primary hover:underline dark:text-[#c49a5a]">
-                II{secII.subtitle ? `. ${secII.subtitle}` : ""}
+                II{secII.subtitle ? <>. {renderTextWithReferences(secII.subtitle)}</> : null}
               </a>
               <a href="#section-iii" className="text-justify text-primary hover:underline dark:text-[#c49a5a]">
-                III{secIII.subtitle ? `. ${secIII.subtitle}` : ""}
+                III{secIII.subtitle ? <>. {renderTextWithReferences(secIII.subtitle)}</> : null}
               </a>
             </nav>
             <div id="section-i">
               <h3 className="text-lg font-bold text-justify">
-                I{secI.subtitle ? `. ${secI.subtitle}` : ""}
+                I{secI.subtitle ? <>. {renderTextWithReferences(secI.subtitle)}</> : null}
               </h3>
               <p className="whitespace-pre-line leading-relaxed text-justify">
                 {renderTextWithReferences(secI.body || text.conteudoI, citations)}
@@ -215,7 +215,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             </div>
             <div id="section-ii">
               <h3 className="text-lg font-bold text-justify">
-                II{secII.subtitle ? `. ${secII.subtitle}` : ""}
+                II{secII.subtitle ? <>. {renderTextWithReferences(secII.subtitle)}</> : null}
               </h3>
               <p className="whitespace-pre-line leading-relaxed text-justify">
                 {renderTextWithReferences(secII.body || text.conteudoII, citations)}
@@ -223,7 +223,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             </div>
             <div id="section-iii">
               <h3 className="text-lg font-bold text-justify">
-                III{secIII.subtitle ? `. ${secIII.subtitle}` : ""}
+                III{secIII.subtitle ? <>. {renderTextWithReferences(secIII.subtitle)}</> : null}
               </h3>
               <p className="whitespace-pre-line leading-relaxed text-justify">
                 {renderTextWithReferences(secIII.body || text.conteudoIII, citations)}

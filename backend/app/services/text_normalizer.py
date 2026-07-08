@@ -33,6 +33,23 @@ MOJIBAKE_MARKERS = (
 
 _SUPERSCRIPT_DIGITS = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
 
+# Contrações obrigatórias do português com a preposição "em".
+# LLMs às vezes traduzem literalmente "en ella" → "em ela" em vez de "nela".
+_EM_CONTRACTIONS: dict[str, str] = {
+    "ela": "nela", "ele": "nele", "elas": "nelas", "eles": "neles",
+    "o": "no", "a": "na", "os": "nos", "as": "nas",
+    "um": "num", "uma": "numa", "uns": "nuns", "umas": "numas",
+}
+_EM_CONTRACTION_RE = re.compile(
+    r"\b(em)\s+(" + "|".join(_EM_CONTRACTIONS) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _apply_em_contraction(m: re.Match) -> str:
+    replacement = _EM_CONTRACTIONS[m.group(2).lower()]
+    return replacement[0].upper() + replacement[1:] if m.group(1)[0].isupper() else replacement
+
 
 def _expand_superscript_digits(text: str) -> str:
     """Convert Unicode superscript digit sequences to space-padded regular digits."""
@@ -53,6 +70,7 @@ def normalize_text(text: str) -> str:
     repaired = repair_mojibake(expanded)
     normalized = unicodedata.normalize("NFC", repaired)
     normalized = re.sub(r"[ \t]+", " ", normalized)
+    normalized = _EM_CONTRACTION_RE.sub(_apply_em_contraction, normalized)
     return normalized.strip()
 
 

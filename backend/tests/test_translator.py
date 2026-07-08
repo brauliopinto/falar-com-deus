@@ -23,7 +23,7 @@ class TestTranslatorService:
         result = service.translate_es_to_pt("Texto en español")
 
         assert result == "Texto traduzido"
-        mock_chat_cls.return_value.invoke.assert_called_once()
+        assert mock_chat_cls.return_value.invoke.call_count == 2
         mock_deepl_cls.assert_not_called()
 
     def test_deepl_only_uses_deepl(self, mock_chat_cls, mock_deepl_cls):

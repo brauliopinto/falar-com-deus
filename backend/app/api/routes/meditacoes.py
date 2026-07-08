@@ -24,6 +24,7 @@ def _service(db: Session) -> MeditationService:
             llm_model=settings.llm_model,
             deepl_api_key=settings.deepl_api_key,
         ),
+        pt_source_url=settings.scrape_source_url_pt,
     )
 
 
@@ -65,6 +66,14 @@ def list_meditacoes(
 def raspar_meditacao(
     force: bool = Query(default=False),
     source_url: str | None = Query(default=None),
+    translate: bool | None = Query(
+        default=None,
+        description=(
+            "Válido apenas junto com source_url. Se True (padrão), o conteúdo raspado é traduzido "
+            "via LLM/DeepL (assume fonte em espanhol). Se False, o conteúdo raspado é salvo direto "
+            "como português, sem tradução (use para reraspar uma URL que já está em português)."
+        ),
+    ),
     date: str | None = Query(default=None, pattern=r"^\d{2}/\d{2}/\d{4}$"),
     db: Session = Depends(get_db),
 ) -> ScrapeResponse:
@@ -72,7 +81,7 @@ def raspar_meditacao(
     if date is not None:
         target_date = datetime.strptime(date, "%d/%m/%Y")
     meditation, changed = _service(db).scrape_and_store_today(
-        force_refresh=force, source_url=source_url, target_date=target_date
+        force_refresh=force, source_url=source_url, target_date=target_date, translate=translate
     )
     if changed and force:
         message = "Raspagem concluída e registro existente foi atualizado."

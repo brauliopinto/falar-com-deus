@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
     llm_model: str = Field(default="openai/gpt-5-mini", alias="LLM_MODEL")
     scrape_api_key: str = Field(alias="SCRAPE_API_KEY")
+    scrape_source_url_pt: str = Field(
+        default="https://hablarcondios.org/pt/meditacao-diaria/",
+        alias="SCRAPE_SOURCE_URL_PT",
+    )
     scrape_source_url: str = Field(
         default="https://hablarcondios.org/meditacion-diaria/",
         alias="SCRAPE_SOURCE_URL",

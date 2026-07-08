@@ -30,6 +30,10 @@ class ScraperService:
     def __init__(self, source_url: str) -> None:
         self._source_url = source_url
 
+    @property
+    def source_url(self) -> str:
+        return self._source_url
+
     def scrape_today(self) -> ScrapedMeditation:
         return self.scrape_for_date()
 
@@ -83,10 +87,10 @@ class ScraperService:
             pre_roman_raw = remaining_raw[:roman_start_idx]
 
             # Decision-making on normalized; mirror indices to raw.
-            summary_raw = [p for p in pre_roman if re.match(r"^[—\-]\s*\S", p)]
-            header_items = [p for p in pre_roman if not re.match(r"^[—\-]\s*\S", p)]
-            summary_raw_r = [pre_roman_raw[i] for i, p in enumerate(pre_roman) if re.match(r"^[—\-]\s*\S", p)]
-            header_items_r = [pre_roman_raw[i] for i, p in enumerate(pre_roman) if not re.match(r"^[—\-]\s*\S", p)]
+            summary_raw = [p for p in pre_roman if re.match(r"^[—–\-]\s*\S", p)]
+            header_items = [p for p in pre_roman if not re.match(r"^[—–\-]\s*\S", p)]
+            summary_raw_r = [pre_roman_raw[i] for i, p in enumerate(pre_roman) if re.match(r"^[—–\-]\s*\S", p)]
+            header_items_r = [pre_roman_raw[i] for i, p in enumerate(pre_roman) if not re.match(r"^[—–\-]\s*\S", p)]
 
             summary_items = [self._clean_summary_marker(p) for p in summary_raw]
             summary_items_r = [self._clean_summary_marker(p) for p in summary_raw_r]
@@ -203,7 +207,7 @@ class ScraperService:
     def _looks_like_meditation_title(value: str) -> bool:
         if len(value) > 80:
             return False
-        if value.startswith(("—", "-", "I .", "II .", "III .")):
+        if value.startswith(("—", "–", "-", "I .", "II .", "III .")):
             return False
         letters = re.sub(r"[^A-Za-zÁÉÍÓÚÜÑáéíóúüñÇç ]", "", value)
         if not letters.strip():
@@ -213,7 +217,7 @@ class ScraperService:
 
     @staticmethod
     def _clean_summary_marker(value: str) -> str:
-        cleaned = re.sub(r"^[—\-]\s*", "", value).strip()
+        cleaned = re.sub(r"^[—–\-]\s*", "", value).strip()
         return cleaned
 
     @staticmethod
