@@ -57,7 +57,7 @@ class ScraperService:
         h1 = article.find("h1")
         h2 = article.find("h2")
         titulo_raw = h1.get_text(" ", strip=True) if h1 else "Meditación diaria"
-        titulo = normalize_text(titulo_raw)
+        titulo = self._strip_leading_number(normalize_text(titulo_raw))
         subtitulo_raw = h2.get_text(" ", strip=True) if h2 else ""
         subtitulo = normalize_text(subtitulo_raw)
 
@@ -76,7 +76,7 @@ class ScraperService:
         remaining = non_empty[1:]
 
         if self._is_generic_title(titulo) and remaining and self._looks_like_meditation_title(remaining[0]):
-            titulo = remaining[0]
+            titulo = self._strip_leading_number(remaining[0])
             titulo_raw = remaining_raw[0]
             remaining = remaining[1:]
             remaining_raw = remaining_raw[1:]
@@ -96,7 +96,7 @@ class ScraperService:
             summary_items_r = [self._clean_summary_marker(p) for p in summary_raw_r]
 
             if self._is_generic_title(titulo) and header_items:
-                titulo = header_items[0]
+                titulo = self._strip_leading_number(header_items[0])
                 titulo_raw = header_items_r[0]
                 if len(header_items) > 1 and not subtitulo:
                     subtitulo = header_items[1]
@@ -214,6 +214,11 @@ class ScraperService:
             return False
         upper_ratio = sum(1 for ch in letters if ch.isupper()) / max(1, sum(1 for ch in letters if ch.isalpha()))
         return upper_ratio > 0.7
+
+    @staticmethod
+    def _strip_leading_number(value: str) -> str:
+        """Remove numeração do dia usada por algumas fontes, ex.: "16. A missão..." -> "A missão..."."""
+        return re.sub(r"^\s*\d+\s*[.\-)]\s*", "", value).strip()
 
     @staticmethod
     def _clean_summary_marker(value: str) -> str:
