@@ -12,7 +12,7 @@ export default function SobrePage() {
       <header className="rounded-2xl border border-stone-300 bg-white p-8 shadow-sm dark:border-stone-700 dark:bg-stone-800">
         <p className="text-sm uppercase tracking-wider text-stone-500 dark:text-stone-400">Sobre este <em>site</em></p>
         <p className="mt-2 text-base text-stone-600 dark:text-stone-400">
-          Meditações diárias traduzidas para o português a partir da obra original em espanhol.
+          Meditações diárias em português a partir da obra original em espanhol.
         </p>
       </header>
 
@@ -27,9 +27,10 @@ export default function SobrePage() {
             exame de consciência.
           </p>
           <p className="leading-relaxed text-justify">
-            O conteúdo é obtido diariamente do <em>site</em> original em espanhol e traduzido
-            automaticamente para o português, tornando esta espiritualidade acessível a leitores
-            lusófonos. O arquivo permite também acessar meditações de dias anteriores.
+            O conteúdo é obtido diariamente, sempre que disponível, diretamente da versão em
+            português do <em>site</em> original; quando isso não é possível, é extraído da versão
+            em espanhol e traduzido automaticamente, tornando esta espiritualidade acessível a
+            leitores lusófonos. O arquivo permite também acessar meditações de dias anteriores.
           </p>
         </section>
 
@@ -68,7 +69,7 @@ export default function SobrePage() {
             Todo o conteúdo das meditações — textos, estrutura e citações — é de autoria de{" "}
             <strong>Francisco Fernández-Carvajal</strong> e propriedade intelectual de{" "}
             <strong>Ediciones Palabra, S.A.</strong> e dos detentores dos direitos da obra{" "}
-            <em>Hablar con Dios</em>. A fonte primária das meditações diárias disponíveis neste
+            <em>Hablar con Dios</em>. A fonte primária das meditações diárias disponíveis neste{" "}
             <em>site</em> é o portal{" "}
             <a
               className="font-medium text-primary hover:underline dark:text-[#c49a5a]"
@@ -98,9 +99,13 @@ export default function SobrePage() {
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100">Tradução</h2>
           <p className="leading-relaxed text-justify">
-            As meditações são traduzidas do espanhol para o português do Brasil por meio do
-            serviço <strong>DeepL</strong>, preservando a estrutura original dos textos, incluindo
-            citações em itálico e referências bibliográficas.
+            Sempre que disponível, as meditações são obtidas diretamente na versão em português do{" "}
+            <em>site</em> original. Quando isso não é possível, o texto em espanhol é traduzido
+            automaticamente para o português do Brasil por um modelo de linguagem, com uma etapa
+            adicional de revisão automática de fluidez e terminologia litúrgica; o serviço{" "}
+            <strong>DeepL</strong> é utilizado como alternativa caso a tradução por modelo de
+            linguagem não esteja disponível. Em ambos os casos, procura-se preservar a estrutura
+            original dos textos, incluindo citações em itálico e referências bibliográficas.
           </p>
         </section>
 
