@@ -178,12 +178,14 @@ Documentação interativa disponível em `http://localhost:8000/docs`.
 |---|---|---|---|
 | `force` | bool | `false` | Sobrescreve o registro se já existir |
 | `source_url` | string | — (usa PT com fallback ES automático) | Força a raspagem de uma URL específica |
-| `translate` | bool | `true` (só se `source_url` informado) | Válido apenas junto com `source_url`. Se `true`, o conteúdo raspado é traduzido via LLM/DeepL (assume-se fonte em espanhol). Se `false`, o conteúdo raspado é salvo direto como português, sem tradução — use para reraspar uma URL que já está em português |
+| `translate` | bool | inferido pela URL (só se `source_url` informado) | Válido apenas junto com `source_url`. Se omitido, é inferido automaticamente pela URL: URLs com `/pt/` não são traduzidas, as demais são tratadas como espanhol e traduzidas. Se `true`, força tradução via LLM/DeepL (assume-se fonte em espanhol). Se `false`, força salvar o conteúdo raspado direto como português, sem tradução |
+| `pt_only` | bool | `false` | Válido apenas junto com `source_url`. Se `true`, atualiza somente os campos em português com o conteúdo raspado, **preservando o conteúdo em espanhol já salvo** para a data (se não existir registro para a data, cria um novo raspando a fonte em espanhol normalmente). Mutuamente exclusivo com `es_only` |
+| `es_only` | bool | `false` | Válido apenas junto com `source_url`. Se `true`, atualiza somente os campos em espanhol com o conteúdo raspado, **preservando o conteúdo em português já salvo** para a data (se não existir registro para a data, cria um novo traduzindo o conteúdo raspado para português). Mutuamente exclusivo com `pt_only` |
 | `date` | string `DD/MM/AAAA` | hoje (America/Sao_Paulo) | Data a ser gravada no banco |
 
 Quando `source_url` não é informado, o serviço tenta primeiro `SCRAPE_SOURCE_URL_PT` (conteúdo já em português, sem tradução) e só recorre a `SCRAPE_SOURCE_URL` (espanhol) com tradução via LLM/DeepL se a raspagem em português falhar; nesse caso `translate` é ignorado.
 
-Os quatro parâmetros são independentes e opcionais. Exemplos:
+Os parâmetros são independentes e opcionais. Exemplos:
 
 ```bash
 # Raspagem normal do dia atual
@@ -198,8 +200,16 @@ curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true" \
 curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2026&source_url=https://hablarcondios.org/meditacion-dia-anterior/" \
   -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
 
-# Raspar de uma URL alternativa já em português, sem tradução
+# Raspar de uma URL alternativa já em português, sem tradução (sobrescreve ES e PT com o mesmo conteúdo)
 curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=29/06/2026&source_url=https://hablarcondios.org/pt/meditacao-dia-anterior/&translate=false" \
+  -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
+
+# Raspar de uma URL alternativa em português SÓ para a aba PT, preservando o conteúdo em espanhol já salvo
+curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=09/07/2026&source_url=https://hablarcondios.org/pt/meditacao-no-dia-anterior/&pt_only=true" \
+  -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
+
+# Raspar de uma URL alternativa em espanhol SÓ para a aba ES, preservando o conteúdo em português já salvo
+curl -s -X POST "http://localhost:8000/meditacoes/raspar?force=true&date=09/07/2026&source_url=https://hablarcondios.org/meditacion-dia-anterior/&es_only=true" \
   -H "X-API-Key: SUA_SCRAPE_API_KEY" | python3 -m json.tool
 ```
 

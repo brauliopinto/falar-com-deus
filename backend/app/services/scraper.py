@@ -201,6 +201,10 @@ class ScraperService:
             "meditacion dia anterior",
             "meditación día siguiente",
             "meditacion dia siguiente",
+            "meditação no dia anterior",
+            "meditacao no dia anterior",
+            "meditação no dia seguinte",
+            "meditacao no dia seguinte",
         }
 
     @staticmethod
