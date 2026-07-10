@@ -33,3 +33,7 @@ htmlcov/
 .vscode/
 policy.yml
 backup.sql
+backup_remoto_antes_*.sql
+backup/
+backup_and_deploy_db.sh
+backup_remote_db.sh
