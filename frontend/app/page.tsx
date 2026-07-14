@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import ShareButton from "@/components/ShareButton";
 import { getMeditacaoHoje } from "@/lib/api";
 import {
   buildReferenceList,
@@ -72,6 +73,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <ShareButton text={current.data} title={stripItalicMarkers(text.titulo)} />
             <Link className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 dark:border-stone-600 dark:text-slate-300" href="/arquivo">
               Abrir arquivo
             </Link>
