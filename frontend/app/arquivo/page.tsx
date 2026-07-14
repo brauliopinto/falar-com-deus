@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import ShareButton from "@/components/ShareButton";
 import { getMeditacaoPorData, listMeditacoes } from "@/lib/api";
 import {
   buildReferenceList,
@@ -158,6 +159,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <ShareButton text={current.data} title={stripItalicMarkers(text.titulo)} />
               {prevMeditation ? (
                 <Link
                   className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 dark:border-stone-600 dark:text-slate-300"

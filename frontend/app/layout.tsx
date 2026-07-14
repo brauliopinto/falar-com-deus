@@ -13,8 +13,9 @@ const dancingScript = Dancing_Script({
 });
 
 export const metadata: Metadata = {
-  title: "Meditação Diária",
-  description: "Meditação diária traduzida para português"
+  metadataBase: new URL("https://falarcomdeus.net.br"),
+  title: "Meditação Diária - Falar com Deus",
+  description: "Meditação diária para cada dia do ano litúrgico"
 };
 
 const themeScript = `
