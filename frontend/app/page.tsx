@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import ShareButton from "@/components/ShareButton";
@@ -22,6 +23,22 @@ type HomePageProps = {
 function createQuery(lang: "pt" | "es"): string {
   const params = new URLSearchParams({ lang });
   return `/?${params.toString()}`;
+}
+
+export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
+  const lang = searchParams?.lang === "es" ? "es" : "pt";
+  const current = await getMeditacaoHoje();
+  if (!current) {
+    return {};
+  }
+
+  const text = getSelectedText(current, lang);
+  const title = stripItalicMarkers(text.titulo);
+  const description = shouldShowSubtitle(text.subtitulo)
+    ? stripItalicMarkers(text.subtitulo)
+    : `Meditação diária de ${current.data}.`;
+
+  return { title: `${title} | Falar com Deus`, description };
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
