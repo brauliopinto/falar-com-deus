@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import ShareButton from "@/components/ShareButton";
@@ -51,6 +52,30 @@ function createArchiveQuery(options: { date?: string; lang: "pt" | "es"; page?: 
     params.set("page", String(options.page));
   }
   return `/arquivo?${params.toString()}`;
+}
+
+export async function generateMetadata({ searchParams }: ArchivePageProps): Promise<Metadata> {
+  const lang = searchParams?.lang === "es" ? "es" : "pt";
+  const pageNumber = Math.max(1, Number.parseInt(searchParams?.page ?? "1", 10) || 1);
+  const offset = (pageNumber - 1) * 5;
+  const requestedDate =
+    searchParams?.date ?? (searchParams?.dateIso ? toApiDate(searchParams.dateIso) : null);
+
+  const current = requestedDate
+    ? await getMeditacaoPorData(requestedDate)
+    : (await listMeditacoes(5, offset)).items[0] ?? null;
+
+  if (!current) {
+    return {};
+  }
+
+  const text = getSelectedText(current, lang);
+  const title = stripItalicMarkers(text.titulo);
+  const description = shouldShowSubtitle(text.subtitulo)
+    ? stripItalicMarkers(text.subtitulo)
+    : `Meditação de ${current.data}.`;
+
+  return { title: `${title} | Falar com Deus`, description };
 }
 
 export default async function ArchivePage({ searchParams }: ArchivePageProps) {
