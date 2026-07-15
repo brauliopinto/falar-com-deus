@@ -1,4 +1,5 @@
 from datetime import datetime
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -12,6 +13,19 @@ from app.services.scraper import ScraperService
 from app.services.translator import TranslatorService
 
 router = APIRouter(prefix="/meditacoes", tags=["Meditações"])
+
+_ALLOWED_SCRAPE_HOSTS = {"hablarcondios.org"}
+
+
+def _validate_source_url(source_url: str | None) -> None:
+    if source_url is None:
+        return
+    parsed = urlparse(source_url)
+    if parsed.scheme != "https" or parsed.hostname not in _ALLOWED_SCRAPE_HOSTS:
+        raise HTTPException(
+            status_code=400,
+            detail="source_url deve ser uma URL https do domínio hablarcondios.org.",
+        )
 
 
 def _service(db: Session) -> MeditationService:
@@ -100,6 +114,7 @@ def raspar_meditacao(
         raise HTTPException(status_code=400, detail="pt_only e es_only são mutuamente exclusivos.")
     if (pt_only or es_only) and source_url is None:
         raise HTTPException(status_code=400, detail="pt_only/es_only requer source_url.")
+    _validate_source_url(source_url)
 
     target_date: datetime | None = None
     if date is not None:
